@@ -1,12 +1,12 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
-
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import bcrypt from "bcryptjs";
+import { User } from "../models/userModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const USER_FILE_PATH = path.join(__dirname, '../data/users.json');
+const USER_FILE_PATH = path.join(__dirname, "../data/users.json");
 
 // Ensure data directory exists
 const ensureDataDirectory = async () => {
@@ -22,11 +22,11 @@ const ensureDataDirectory = async () => {
 export const getUsers = async () => {
   try {
     await ensureDataDirectory();
-    const data = await fs.readFile(USER_FILE_PATH, 'utf-8');
+    const data = await fs.readFile(USER_FILE_PATH, "utf-8");
     return JSON.parse(data);
   } catch (error) {
     // If file doesn't exist, return empty array
-    if (error.code === 'ENOENT') {
+    if (error.code === "ENOENT") {
       await fs.writeFile(USER_FILE_PATH, JSON.stringify([], null, 2));
       return [];
     }
@@ -41,43 +41,73 @@ export const saveUsers = async (users) => {
 };
 
 // Create new user
+// export const createUser = async (userData) => {
+//   // const users = await getUsers();
+//   console.log(userData, "here is user Data");
+//   // Check if user already exists
+//   const existingUser = await User.findOne({ email: userData.email });
+//   console.log(existingUser, "here is user");
+//   if (existingUser) {
+//     throw new Error("User with this email already exists");
+//   }
+
+//   // Hash password
+//   const hashedPassword = await bcrypt.hash(userData.password, 10);
+//   console.log(hashedPassword, "passowrd here");
+//   // Create user object
+//   // const newUser = {
+//   //   id: Date.now().toString(),
+//   //   fullName: userData.fullName,
+//   //   email: userData.email,
+//   //   password: hashedPassword,
+//   //   createdAt: new Date().toISOString(),
+//   // };
+
+//   // users.push(newUser);
+//   const user = new User({
+//     email: userData.email,
+//     name: userData.name,
+//     password: hashedPassword,
+//   });
+//   // await saveUsers(users);
+//   await user.save();
+
+//   // Return user without password
+//   // const { password, ...userWithoutPassword } = newUser;
+//   return user;
+// };
+
 export const createUser = async (userData) => {
-  const users = await getUsers();
-  
+  console.log(userData, "here is user Data");
+
   // Check if user already exists
-  const existingUser = users.find(user => user.email === userData.email);
+  const existingUser = await User.findOne({ email: userData.email });
+  console.log(existingUser, "here is user");
+
   if (existingUser) {
-    throw new Error('User with this email already exists');
+    throw new Error("User with this email already exists");
   }
 
-  // Hash password
   const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-  // Create user object
-  const newUser = {
-    id: Date.now().toString(),
-    fullName: userData.fullName,
+  const user = new User({
     email: userData.email,
+    name: userData.name,
     password: hashedPassword,
-    createdAt: new Date().toISOString(),
-  };
+  });
 
-  users.push(newUser);
-  await saveUsers(users);
+  await user.save();
 
-  // Return user without password
-  const { password, ...userWithoutPassword } = newUser;
-  return userWithoutPassword;
+  return user;
 };
 
 // Find user by email
 export const findUserByEmail = async (email) => {
   const users = await getUsers();
-  return users.find(user => user.email === email);
+  return users.find((user) => user.email === email);
 };
 
 // Verify password
 export const verifyPassword = async (plainPassword, hashedPassword) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
 };
-
