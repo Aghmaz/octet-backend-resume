@@ -103,8 +103,8 @@ export const createUser = async (userData) => {
 
 // Find user by email
 export const findUserByEmail = async (email) => {
-  const users = await getUsers();
-  return users.find((user) => user.email === email);
+  // const users = await getUsers();
+  return await User.findOne({ email: email });
 };
 
 // Verify password
