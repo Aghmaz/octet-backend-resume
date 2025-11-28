@@ -4,6 +4,13 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-});
+  // 1 user → many resumes
+  resumes: [
+    { 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Resume"
+    }
+  ],
+}, { timestamps: true });
 
 export const User = mongoose.model("User", UserSchema);

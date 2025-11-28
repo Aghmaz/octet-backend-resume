@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./Routes/authRoutes.js";
+import resumeRoutes from "./Routes/resumeRoutes.js";
 import mongoose from "mongoose";
 
 dotenv.config();
@@ -32,7 +33,7 @@ mongoose
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/resume", resumeRoutes);
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
