@@ -38,14 +38,29 @@ export const getUsers = async () => {
 
 export const createResumeService = async (resumeData) => {
   console.log(resumeData, "here is resume Data");
+//check if resume already exists
+  const existingResume = await Resume.findOne({ userId: resumeData.userId});
+  console.log(existingResume, "here is existing resume");
+  
+//match template name with resume template and update resume 
+const updateResume = await Resume.findByIdAndUpdate(existingResume._id, { templateName: resumeData.templateName, personalInfo: resumeData.personalInfo, summary: resumeData.summary, education: resumeData.education, skills: resumeData.skills }, { new: false });
+console.log(updateResume, "here is updateResume");
+if(!updateResume){
+  throw new Error("Resume not updated");
+}
+if(updateResume.templateName !== resumeData.templateName){
+await updateResume.save()
+console.log(updateResume, "here is updated resume");
+return updateResume;
+}
 
-  // Check if user already exists
+  // create resume
   const resume = await Resume.create({ userId: resumeData.userId, templateName: resumeData.templateName, personalInfo: resumeData.personalInfo, summary: resumeData.summary, education: resumeData.education, skills: resumeData.skills });
   console.log(resume, "here is resume");
 
   const user = await User.findByIdAndUpdate(resumeData.userId, { $push: { resumes: resume._id } }, { new: true });
   await user.save()
-  console.log(user, "here is user");
+  console.log(user, "here is user");    
   return resume;
 };
 
