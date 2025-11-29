@@ -41,28 +41,21 @@ import {
   
   export const updateResume = async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references } = req.body;
   
       // Validation
-      if (!email || !password) {
+      if (!userId || !templateName) {
         return res.status(400).json({
           success: false,
-          message: "Email and password are required",
-        });
+          message: "All fields are required",
+        }); 
       }
   
       // Find user
-      const user = await findUserByEmail(email);
+      console.log( "here is terminal line 55");
+      const user = await findUserByEmail(userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references);
+      console.log(user, "here is user");
       if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
-      }
-  
-      // Verify password
-      const isPasswordValid = await verifyPassword(password, user.password);
-      if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
           message: "Invalid email or password",
@@ -73,8 +66,7 @@ import {
       res.json({
         success: true,
         message: "Login successful",
-        user: userWithoutPassword,
-        token,
+        user: user,
       });
     } catch (error) {
       res.status(500).json({

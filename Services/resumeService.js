@@ -50,9 +50,31 @@ export const createResumeService = async (resumeData) => {
 };
 
 // Find user by email
-export const findUserByEmail = async (email) => {
-  // const users = await getUsers();
-  return await User.findOne({ email: email });
+export const findUserByEmail = async (userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references) => {
+  console.log(userId, "here is userId");
+//  check if user exists
+    const user =  await User.findOne({ _id: userId });
+    console.log(user, "here is user");
+  if(!user){
+    throw new Error("User not found");
+  }
+  // check if resume exists
+  const resume = await Resume.findOne({ userId: userId, templateName: templateName });
+  console.log(resume, "here is resume");
+  if(!resume){
+    throw new Error("Resume not found");
+  }
+  // update resume
+  const updateResume = await Resume.findByIdAndUpdate(resume._id, { personalInfo: personalInfo, summary: summary, education: education, experience: experience, skills: skills, projects: projects, certifications: certifications, awards: awards, interests: interests, references: references }, { new: true });
+  console.log(updateResume, "here is updateResume");
+  if(!updateResume){
+  throw new Error("Resume not updated");
+ }
+//  save resume
+  await updateResume.save()
+  console.log(updateResume, "here is updated resume");
+  // return updated resume
+  return updateResume;
 };
 
 // Verify password
