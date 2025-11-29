@@ -44,6 +44,7 @@ export const createResumeService = async (resumeData) => {
   console.log(resume, "here is resume");
 
   const user = await User.findByIdAndUpdate(resumeData.userId, { $push: { resumes: resume._id } }, { new: true });
+  await user.save()
   console.log(user, "here is user");
   return resume;
 };
