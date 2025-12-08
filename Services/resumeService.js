@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { User } from "../models/userModel.js";
 import Resume from "../models/resumeModel.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -35,61 +36,195 @@ export const getUsers = async () => {
   }
 };
 
+// Generate unique shareId
+const generateShareId = () => {
+  return crypto.randomBytes(16).toString('hex');
+};
 
-export const createResumeService = async (resumeData) => {
-  console.log(resumeData, "here is resume Data");
-//check if resume already exists
-  const existingResume = await Resume.findOne({ userId: resumeData.userId});
+export const createResumeService = async ({userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references}) => {
+  console.log(userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references, "here is resume Data");
+  
+  // Check if resume already exists for this user
+  const existingResume = await Resume.findOne({ userId: userId });
   console.log(existingResume, "here is existing resume");
   
-//match template name with resume template and update resume 
-const updateResume = await Resume.findByIdAndUpdate(existingResume._id, { templateName: resumeData.templateName, personalInfo: resumeData.personalInfo, summary: resumeData.summary, education: resumeData.education, skills: resumeData.skills }, { new: false });
-console.log(updateResume, "here is updateResume");
-if(!updateResume){
-  throw new Error("Resume not updated");
-}
-if(updateResume.templateName !== resumeData.templateName){
-await updateResume.save()
-console.log(updateResume, "here is updated resume");
-return updateResume;
-}
+  if(existingResume){
+    // Update existing resume
+    const updateResume = await Resume.findByIdAndUpdate(
+      existingResume._id, 
+      { 
+        templateName: templateName, 
+        personalInfo: personalInfo, 
+        summary: summary, 
+        education: education || [],
+        experience: experience || [],
+        skills: skills || [],
+        references: references || []
+      }, 
+      { new: true }
+    );
+    console.log(updateResume, "here is updateResume");
+    if(!updateResume){
+      throw new Error("Resume not updated");
+    }
+    await updateResume.save();
+    return updateResume;
+  }
 
-  // create resume
-  const resume = await Resume.create({ userId: resumeData.userId, templateName: resumeData.templateName, personalInfo: resumeData.personalInfo, summary: resumeData.summary, education: resumeData.education, skills: resumeData.skills });
+  // Generate shareId
+  let shareId = generateShareId();
+  // Ensure uniqueness
+  while(await Resume.findOne({ shareId: shareId })){
+    shareId = generateShareId();
+  }
+
+  // Create new resume
+  const resume = await Resume.create({ 
+    userId: userId, 
+    templateName: templateName, 
+    personalInfo: personalInfo, 
+    summary: summary, 
+    education: education || [],
+    experience: experience || [],
+    skills: skills || [],
+    references: references || [],
+    shareId: shareId
+  });
   console.log(resume, "here is resume");
 
-  const user = await User.findByIdAndUpdate(resumeData.userId, { $push: { resumes: resume._id } }, { new: true });
-  await user.save()
+  const user = await User.findByIdAndUpdate(userId, { $push: { resumes: resume._id } }, { new: true });
   console.log(user, "here is user");    
+  await user.save();
   return resume;
 };
 
-// Find user by email
-export const findUserByEmail = async (userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references) => {
+// Update resume service - Only updates fields that are provided
+export const updateResumeService = async (userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references) => {
   console.log(userId, "here is userId");
-//  check if user exists
-    const user =  await User.findOne({ _id: userId });
-    console.log(user, "here is user");
+  
+  // Check if user exists
+  const user = await User.findOne({ _id: userId });
+  console.log(user, "here is user");
   if(!user){
     throw new Error("User not found");
   }
-  // check if resume exists
+  
+  // Check if resume exists
   const resume = await Resume.findOne({ userId: userId, templateName: templateName });
   console.log(resume, "here is resume");
   if(!resume){
     throw new Error("Resume not found");
   }
-  // update resume
-  const updateResume = await Resume.findByIdAndUpdate(resume._id, { personalInfo: personalInfo, summary: summary, education: education, experience: experience, skills: skills, projects: projects, certifications: certifications, awards: awards, interests: interests, references: references }, { new: true });
+  
+  // Build update object - only include fields that are provided (not undefined)
+  const updateFields = {};
+  
+  if (personalInfo !== undefined) {
+    updateFields.personalInfo = personalInfo;
+  }
+  
+  if (summary !== undefined) {
+    updateFields.summary = summary;
+  }
+  
+  if (education !== undefined) {
+    updateFields.education = education;
+  }
+  
+  if (experience !== undefined) {
+    updateFields.experience = experience;
+  }
+  
+  if (skills !== undefined) {
+    updateFields.skills = skills;
+  }
+  
+  if (projects !== undefined) {
+    updateFields.projects = projects;
+  }
+  
+  if (certifications !== undefined) {
+    updateFields.certifications = certifications;
+  }
+  
+  if (awards !== undefined) {
+    updateFields.awards = awards;
+  }
+  
+  if (interests !== undefined) {
+    updateFields.interests = interests;
+  }
+  
+  if (references !== undefined) {
+    updateFields.references = references;
+  }
+  
+  // Update resume - only update fields that were provided
+  const updateResume = await Resume.findByIdAndUpdate(
+    resume._id, 
+    { $set: updateFields }, 
+    { new: true }
+  );
   console.log(updateResume, "here is updateResume");
   if(!updateResume){
-  throw new Error("Resume not updated");
- }
-//  save resume
-  await updateResume.save()
-  console.log(updateResume, "here is updated resume");
-  // return updated resume
+    throw new Error("Resume not updated");
+  }
+  
+  // Generate shareId if it doesn't exist
+  if(!updateResume.shareId){
+    let shareId = generateShareId();
+    // Ensure uniqueness
+    while(await Resume.findOne({ shareId: shareId })){
+      shareId = generateShareId();
+    }
+    updateResume.shareId = shareId;
+    await updateResume.save();
+  }
+  
+  // Return updated resume
   return updateResume;
+};
+
+// Get resume by userId and templateName
+export const getResumeService = async (userId, templateName) => {
+  console.log(userId, templateName, "here is userId and templateName");
+  
+  // Check if user exists
+  const user = await User.findOne({ _id: userId });
+  if(!user){
+    throw new Error("User not found");
+  }
+  
+  // Find resume
+  let resume = await Resume.findOne({ userId: userId, templateName: templateName });
+  if(!resume){
+    return null; // Resume doesn't exist yet
+  }
+  
+  // Generate shareId if it doesn't exist
+  if(!resume.shareId){
+    let shareId = generateShareId();
+    // Ensure uniqueness
+    while(await Resume.findOne({ shareId: shareId })){
+      shareId = generateShareId();
+    }
+    resume.shareId = shareId;
+    await resume.save();
+  }
+  
+  return resume;
+};
+
+// Get resume by shareId (public endpoint)
+export const getResumeByShareIdService = async (shareId) => {
+  console.log(shareId, "here is shareId");
+  
+  const resume = await Resume.findOne( shareId );
+  if(!resume){
+    return null;
+  }
+  
+  return resume;
 };
 
 // Verify password

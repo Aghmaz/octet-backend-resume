@@ -1,16 +1,16 @@
 import express from 'express';
 import { createResume, 
-    updateResume, 
-    // deleteResumeController, getResumeController, getAllResumesController 
+    updateResume,
+    getResume,
+    getResumeByShareId
 } from '../Controller/resumeController.js';
 
 const router = express.Router();
 
 router.post('/create', createResume);
 router.post('/update', updateResume);
-// router.post('/delete', deleteResume);
-// router.get('/get/:id', getResume);
-// router.get('/get-all', getAllResumes);
+router.get('/get', getResume);
+router.get('/get/:shareId', getResumeByShareId);
 
 export default router;
 

@@ -15,19 +15,51 @@ const resumeSchema = new mongoose.Schema({
 
   summary: String,
 
-templateName: String,
+  templateName: String,
 
+  // Work Experience
+  experience: [
+    {
+      position: String,
+      company: String,
+      location: String,
+      startDate: String,
+      endDate: String,
+      isPresent: { type: Boolean, default: false },
+      description: String
+    }
+  ],
 
   education: [
     {
-      school: String,
       degree: String,
+      institution: String,
+      location: String,
       startDate: String,
-      endDate: String
+      endDate: String,
+      isPresent: { type: Boolean, default: false },
+      description: String
     }
   ],
 
   skills: [String],
+
+  // References
+  references: [
+    {
+      name: String,
+      title: String,
+      company: String,
+      email: String
+    }
+  ],
+
+  // Shareable URL ID
+  shareId: { 
+    type: String, 
+    unique: true, 
+    sparse: true // Allows null values but ensures uniqueness when present
+  },
 
   createdAt: { type: Date, default: Date.now }
 });

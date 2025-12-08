@@ -1,14 +1,14 @@
 import {
     createResumeService,
-    findUserByEmail,
-    verifyPassword,
+    updateResumeService,
+    getResumeService,
+    getResumeByShareIdService,
   } from "../Services/resumeService.js";
-  import { generateToken } from "../Services/jwtService.js";
   
   export const createResume = async (req, res) => {
     try {
       const { userId,templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references } = req.body;
-  
+  console.log(userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references, "here is req.body");
       // Validation
       if (!userId || !templateName) {
         return res.status(400).json({
@@ -47,26 +47,30 @@ import {
       if (!userId || !templateName) {
         return res.status(400).json({
           success: false,
-          message: "All fields are required",
+          message: "userId and templateName are required",
         }); 
       }
   
-      // Find user
-      console.log( "here is terminal line 55");
-      const user = await findUserByEmail(userId, templateName, personalInfo, summary, education, experience, skills, projects, certifications, awards, interests, references);
-      console.log(user, "here is user");
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
-      }
-  
+      // Update resume
+      const updatedResume = await updateResumeService(
+        userId, 
+        templateName, 
+        personalInfo, 
+        summary, 
+        education, 
+        experience, 
+        skills, 
+        projects, 
+        certifications, 
+        awards, 
+        interests, 
+        references
+      );
   
       res.json({
         success: true,
-        message: "Login successful",
-        user: user,
+        message: "Resume updated successfully",
+        resume: updatedResume,
       });
     } catch (error) {
       res.status(500).json({
@@ -87,28 +91,31 @@ import {
   
   export const getResume = async (req, res) => {
     try {
-      const token = req.cookies.token;
-      if (!token) {
-        return res.status(401).json({
+      const { userId, templateName } = req.query;
+  
+      // Validation
+      if (!userId || !templateName) {
+        return res.status(400).json({
           success: false,
-          message: "Not authenticated",
+          message: "userId and templateName are required",
         });
       }
   
-    
+      // Get resume
+      const resume = await getResumeService(userId, templateName);
   
-      const user = await findUserByEmail(decoded.email);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
+      if (!resume) {
+        return res.json({
+          success: true,
+          message: "Resume not found",
+          resume: null,
         });
       }
   
-      const { password, ...userWithoutPassword } = user;
       res.json({
         success: true,
-        user: userWithoutPassword,
+        message: "Resume fetched successfully",
+        resume: resume,
       });
     } catch (error) {
       res.status(500).json({
@@ -119,3 +126,22 @@ import {
     }
   };
   
+  export const getResumeByShareId = async (req, res) => {
+    try {
+      const { shareId } = req.params;
+      console.log(shareId, "here is shareId");
+      const resume = await getResumeByShareIdService({shareId});
+      console.log(resume, "here is resume");
+      res.json({
+        success: true,
+        message: "Resume fetched successfully",
+        resume: resume,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+        error: error.message,
+      });
+    }
+  };
