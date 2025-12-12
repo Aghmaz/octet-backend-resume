@@ -25,16 +25,19 @@ app.use(cookieParser());
 // local mongodb connection  localhost === mongodb://0.0.0.0:27017 aghmazofficial_db_user gtNJAAn6pPqHn0VD
 //mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/
 
-mongoose
-  .connect("mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/?retryWrites=true&w=majority")
-  .then(() => {
-    console.log("Mongodb Connected");
-  })
-  .catch((err) => {
-    console.log(err, "mongodb connection");
-  });
+mongoose.connect(
+  "mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/octetResumeDatabase?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+  }
+)
+.then(() => console.log("MongoDB Connected"))
+.catch((err) => console.log("MongoDB Connection Error: ", err));
 
-// mongoose
+
+  // mongoose
 //   .connect("mongodb://localhost:27017/octetResumeDatabase")
 //   .then(() => {
 //     console.log("Mongodb Connected");
