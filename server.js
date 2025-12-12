@@ -26,10 +26,7 @@ app.use(cookieParser());
 //mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/
 
 mongoose.connect(
-  "mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/octetResumeDatabase?retryWrites=true&w=majority",
-  {
-    serverSelectionTimeoutMS: 5000,
-  }
+  "mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/octetResumeDatabase?retryWrites=true&w=majority"
 )
 .then(() => console.log("MongoDB Connected"))
 .catch((err) => console.log("MongoDB Connection Error: ", err));
