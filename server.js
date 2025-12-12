@@ -28,8 +28,6 @@ app.use(cookieParser());
 mongoose.connect(
   "mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/octetResumeDatabase?retryWrites=true&w=majority",
   {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
   }
 )
