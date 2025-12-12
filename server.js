@@ -14,22 +14,34 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Vite default port
+    origin:  "https://octet-resume-builder.vercel.app" , // Vite default port
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Allow cookies
   })
 );
 app.use(express.json());
 app.use(cookieParser());
 
-// local mongodb connection  localhost === mongodb://0.0.0.0:27017
+// local mongodb connection  localhost === mongodb://0.0.0.0:27017 aghmazofficial_db_user gtNJAAn6pPqHn0VD
+//mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/
+
 mongoose
-  .connect("mongodb://localhost:27017/octetResumeDatabase")
+  .connect("mongodb+srv://aghmazofficial_db_user:gtNJAAn6pPqHn0VD@cluster0.qtvbijm.mongodb.net/?retryWrites=true&w=majority")
   .then(() => {
     console.log("Mongodb Connected");
   })
   .catch((err) => {
     console.log(err, "mongodb connection");
   });
+
+// mongoose
+//   .connect("mongodb://localhost:27017/octetResumeDatabase")
+//   .then(() => {
+//     console.log("Mongodb Connected");
+//   })
+//   .catch((err) => {
+//     console.log(err, "mongodb connection");
+//   });
 
 // Routes
 app.use("/api/auth", authRoutes);
